@@ -1,0 +1,156 @@
+SOFTWARE DEVELOPMENT LIFE CYCLE (SDLC) — MODEL SELECTION GUIDE
+Source: Topic-2 Selection of an SDLC (Mahendra Pratap Singh, Dept. of CSE, NITK)
+
+================================================================
+HOW TO CHOOSE A MODEL
+================================================================
+Selection is driven by four project characteristic categories:
+ 1. Requirements (clarity, stability, need to demonstrate them)
+ 2. Project Team (familiarity with domain/technology/tools, turnover, training)
+ 3. User Community (availability, expertise, desired involvement)
+ 4. Project Type & Risk (new direction, integration, funding stability, expected longevity)
+
+Six models are compared: Waterfall, V-Shaped, Prototype, Spiral, RAD, Incremental.
+
+================================================================
+1. WATERFALL MODEL
+================================================================
+Use when:
+ - Requirements are well known, clearly defined, and can be locked in early.
+ - Requirements are NOT expected to change during the project.
+ - There is no need to demonstrate requirements or build a proof of concept first.
+ - The project is NOT a system integration or enhancement effort (i.e., mostly new,
+   self-contained development) and does NOT represent a new product direction.
+ - Funding is expected to be stable for the whole life cycle.
+ - The product is expected to have a long life in the organization.
+Team/User fit:
+ - Best when the team is relatively new to the technology/tools (structured, sequential
+   phases give time to learn) but the requirements themselves are solid.
+ - User representatives may have limited availability — heavy user involvement isn't required
+   once requirements are signed off.
+Bottom line: Choose Waterfall for well-understood, stable, low-ambiguity projects where
+you can define everything up front and don't expect change.
+
+================================================================
+2. V-SHAPED MODEL (Verification & Validation)
+================================================================
+Use when:
+ - Requirements are well known and can be defined early, and are unlikely to change.
+ - The project involves system integration or is an enhancement to an existing system.
+ - Funding is expected to be stable, and the product is expected to have a long life.
+ - Training is available for the team if needed.
+Team/User fit:
+ - Suitable when the team is new to the technology or tools, since built-in
+   verification/validation at each stage reduces risk from that inexperience.
+ - Like Waterfall, doesn't require heavy ongoing user involvement.
+Bottom line: Choose V-Shaped like Waterfall, but specifically when strong testing/validation
+discipline is needed — e.g., integration or enhancement work where correctness matters.
+
+================================================================
+3. PROTOTYPE MODEL
+================================================================
+Use when:
+ - Requirements are NOT well known or easily defined, and are likely to change.
+ - There is a need to demonstrate requirements, or build a proof of concept, to nail
+   down what's actually needed.
+ - The project may represent a new product direction or a system integration effort.
+Team/User fit:
+ - Good when the team is new to the problem domain (a prototype helps everyone learn),
+   but works best when the team already knows the technology/tools.
+ - Ideal when users are new to defining the system themselves but ARE experts in the
+   problem domain, and want to be closely involved across all phases.
+Bottom line: Choose Prototype when you need to explore and validate unclear requirements
+with active, expert user feedback before committing to a full build.
+
+================================================================
+4. SPIRAL MODEL
+================================================================
+Use when:
+ - Requirements are poorly understood and expected to change frequently.
+ - A strong need exists to demonstrate requirements and prove feasibility (proof of concept).
+ - The project is high-risk: possibly a new product direction, a system integration
+   project, with funding that may NOT be stable throughout the life cycle.
+ - The product is expected to have a long organizational life, justifying the
+   extra risk-analysis overhead of repeated spiral iterations.
+Team/User fit:
+ - Suited to teams new to the problem domain, the technology, AND the tools — and where
+   team members may be reassigned mid-project.
+ - Works when user availability is limited and users are new to system definition.
+Bottom line: Choose Spiral for large, high-risk, high-uncertainty projects where
+iterative risk analysis is essential and unstable funding/requirements are expected.
+
+================================================================
+5. RAD (RAPID APPLICATION DEVELOPMENT) MODEL
+================================================================
+Use when:
+ - Requirements are well known, can be defined early, and are stable — but still
+   benefit from demonstration and a proof of concept for stakeholder buy-in.
+ - The project is a system integration effort or an enhancement to an existing system.
+ - Funding is expected to be stable.
+Team/User fit:
+ - Best when the team already knows the problem domain, technology, and tools well
+   (RAD relies on speed, not learning-on-the-job), and won't be reassigned mid-project.
+ - Training is available if needed.
+ - Requires highly available, expert users who want to be closely involved throughout.
+Bottom line: Choose RAD when you have clear requirements, an experienced team, and
+engaged expert users, and you want to move fast — typically for integration/enhancement
+projects with stable funding.
+
+================================================================
+6. INCREMENTAL MODEL
+================================================================
+Use when:
+ - Requirements can be defined early overall, even if some details evolve — but are
+   not expected to change drastically once each increment is locked in.
+ - The project could represent a new product direction, a system integration effort,
+   or an enhancement to an existing system.
+ - The product is expected to have a long life in the organization.
+Team/User fit:
+ - Good fit when the team is new to the technology/tools and may face reassignment
+   during the life cycle — training should be available.
+ - Works when user availability is limited/restricted, and users are new to system
+   definition but are domain experts (though they don't need to be involved in
+   every single phase, unlike Prototype/RAD).
+Bottom line: Choose Incremental when you want to deliver working pieces of the system
+progressively, tolerate some team turnover, and don't need constant full-time user
+involvement.
+
+================================================================
+QUICK COMPARISON TABLE (Yes/No answers from the source slides)
+================================================================
+Legend: W=Waterfall, V=V-Shaped, P=Prototype, S=Spiral, R=RAD, I=Incremental
+
+REQUIREMENTS
+                                                                W   V   P   S   R   I
+Easily defined / well known?                                   Y   Y   N   N   Y   N
+Can be defined early in the cycle?                              Y   Y   N   N   Y   Y
+Will requirements change often?                                 N   N   Y   Y   N   N
+Need to demonstrate requirements to achieve definition?         N   N   Y   Y   Y   N
+Proof of concept required to demonstrate capability?            N   N   Y   Y   Y   N
+
+PROJECT TEAM
+                                                                W   V   P   S   R   I
+Majority new to the problem domain?                             N   N   Y   Y   N   N
+Majority new to the technology domain?                          Y   Y   N   Y   N   Y
+Majority new to the tools to be used?                            Y   Y   N   Y   N   N
+Team members subject to reassignment?                            N   N   Y   Y   N   Y
+Training available if required?                                  N   Y   N   N   Y   Y
+
+USER COMMUNITY
+                                                                W   V   P   S   R   I
+User rep. availability restricted/limited?                       Y   Y   N   Y   N   Y
+User reps new to system definition?                               N   N   Y   Y   N   Y
+User reps experts in the problem domain?                          N   N   Y   N   Y   Y
+Users want to be involved in all phases?                          N   N   Y   N   Y   N
+
+PROJECT TYPE & RISK
+                                                                W   V   P   S   R   I
+New product direction for the organization?                      N   N   Y   Y   N   Y
+System integration project?                                       N   Y   Y   Y   Y   Y
+Enhancement to an existing system?                                 N   Y   N   N   Y   Y
+Funding expected stable throughout life cycle?                     Y   Y   Y   N   Y   N
+Long life expected in the organization?                             Y   Y   N   Y   N   Y
+
+================================================================
+END OF GUIDE
+================================================================
