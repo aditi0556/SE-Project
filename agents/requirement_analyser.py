@@ -42,24 +42,29 @@ qdrant_tools = McpToolset(
 
 requirement_analyser = Agent(
     name="requirement_analyser",
-    model="gemini-flash-latest",
+    model="gemini-3.5-flash-lite",
     description=(
         "Analyzes a user's project description and identifies "
         "functional requirements, non-functional requirements, "
         "risks, uncertainties, and requirement stability."
     ),
     instruction="""
-         You are a Requirement Analyser Agent.
+         You are a Requirement Analyser Agent for healthcare software.
 
-         Your task is to analyze the project description provided by the user
-         and also use the qdrant_tools to give the requirements to predict the sdlc model.
+         You MUST call the Qdrant retrieval tool before generating
+         your requirements.
 
-         Follow these rules:
+         Use the healthcare knowledge base to retrieve relevant
+         healthcare-domain information.
 
-         1. Identify all functional requirements explicitly mentioned or
-            clearly implied by the project description.
+         Then:
 
-         2. Identify relevant non-functional requirements such as:
+         1. Identify functional requirements explicitly mentioned
+            or clearly implied by the project description.
+            Do NOT invent technologies, standards, regulations,
+            integrations, or implementation details.
+
+         2. Identify relevant non-functional requirements:
             - Security
             - Performance
             - Reliability
@@ -67,18 +72,34 @@ requirement_analyser = Agent(
             - Usability
             - Availability
             - Maintainability
+            - Data integrity
+            - Auditability
 
-         3.Identify factors that are useful for later SDLC determination:
-         - Requirement stability
-         - Requirement uncertainty
-         - Technical uncertainty
-         - Risk level
-         - Safety criticality
-         - Regulatory/compliance constraints
-         - Need for user feedback
-         - Need for prototyping
-         - Integration complexity
-   """,
+         3. Identify factors useful for later SDLC determination:
+            - Requirement stability
+            - Requirement uncertainty
+            - Technical uncertainty
+            - Risk level
+            - Safety criticality
+            - Regulatory constraints
+            - Need for user feedback
+            - Need for prototyping
+            - Integration complexity
+
+         4. Clearly distinguish between:
+            - requirements explicitly stated by the user
+            - requirements that are strongly implied by the scenario
+
+         5. Use the healthcare knowledge base to identify relevant
+            domain considerations, but do not assume that a specific
+            technology, regulation, standard, or integration is being
+            used unless supported by the project description or
+            retrieved knowledge.
+
+         6. Do NOT determine or recommend an SDLC model.
+
+         Return only the structured output.
+         """,
    tools=[qdrant_tools],
    output_schema=RequirementsOutput,
    output_key="requirements"

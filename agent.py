@@ -1,6 +1,6 @@
 from google.adk.agents import SequentialAgent
-from .agents.requirement_analyser import requirement_analyser
-from .agents.sdlc_determiner import sdlc_determiner
+from agents.requirement_analyser import requirement_analyser
+from agents.sdlc_determiner import sdlc_determiner
 
 
 root_agent = SequentialAgent(
