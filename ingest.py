@@ -85,9 +85,10 @@ async def ingest_file(collection_name: str, file_path: Path):
 
     # 3. Start Qdrant MCP server for this collection
     server_params = StdioServerParameters(
-        command="uvx",
+        command="/home/aditi-sinha/.local/bin/uvx",
         args=["mcp-server-qdrant"],
         env={
+            "PATH": "/home/aditi-sinha/.local/bin:/usr/local/bin:/usr/bin:/bin",
             "QDRANT_URL": QDRANT_URL,
             "COLLECTION_NAME": collection_name,
             "EMBEDDING_PROVIDER": "fastembed",

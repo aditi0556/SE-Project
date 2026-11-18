@@ -152,5 +152,32 @@ Funding expected stable throughout life cycle?                     Y   Y   Y   N
 Long life expected in the organization?                             Y   Y   N   Y   N   Y
 
 ================================================================
+7. HEALTHCARE & REGULATED MEDICAL SDLC MODELS
+================================================================
+Source: Healthcare & Medical Software SDLC Guidelines (IEC 62304, FDA Design Controls, HIPAA)
+
+Model Decision Matrix for Healthcare & Medical Systems:
+- WATERFALL / FORMAL SEQUENTIAL:
+  Best for: Highly stable, pre-defined medical device firmware or locked clinical instrumentation where requirements and architecture cannot change mid-project.
+  Key indicators: High stability, extensive pre-market documentation, formal design freeze.
+
+- V-MODEL (IEC 62304 Verification & Validation):
+  Best for: Life-critical medical software, Software as a Medical Device (SaMD Class B & Class C), clinical diagnostic systems, and real-time patient monitoring.
+  Key indicators: Every development phase directly maps to a corresponding verification and validation phase (Unit Testing -> Unit Verification; Architectural Design -> Integration Testing; Requirements -> System/Clinical Validation). Strict traceability matrix between hazards, controls, requirements, and test protocols.
+
+- SPIRAL MODEL:
+  Best for: Experimental clinical algorithms, novel medical imaging techniques, or AI-driven diagnostic research with high technical uncertainty where iterative prototyping and clinical risk mitigation are required before deployment.
+
+- AGILE (Scrum / Kanban):
+  Best for: Low-risk healthcare wellness apps (Class A / non-device), patient appointment portals, educational wellness tools, or internal administrative systems with rapidly evolving user requirements and active clinician/patient feedback.
+
+- HEALTHCARE DEVSECOPS:
+  Best for: Cloud-native digital health platforms, FHIR API microservices, and continuous secure deployment with automated HIPAA compliance-as-code, automated static analysis (SAST/DAST), dependency vulnerability scanning (SBOM), and immutable audit log automation.
+
+- AGILE–V-MODEL HYBRID (REGULATED AGILE / IEC 62304 HYBRID):
+  Best for: Modern clinical software, digital health platforms, and SaMD requiring both rapid feature iteration and rigorous medical regulatory compliance.
+  Key indicators: Fast iterative sprints for feature design and clinical usability, coupled with formal V-Model gate reviews, clinical risk analysis (ISO 14971), traceability verification, and formal sign-offs (Clinical Safety Officer & Regulatory Affairs) at major release boundaries.
+
+================================================================
 END OF GUIDE
 ================================================================

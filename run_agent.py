@@ -64,7 +64,7 @@ async def run_with_retry(session_id: str, user_input: str):
             error = str(e)
 
             # Retry only temporary errors
-            if "503" not in error and "429" not in error:
+            if "503" not in error and "429" not in error and "500" not in error:
                 raise
 
             if attempt == max_retries - 1:
