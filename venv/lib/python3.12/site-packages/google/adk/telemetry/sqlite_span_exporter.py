@@ -1,0 +1,360 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""SQLite-backed OpenTelemetry span exporter for local development."""
+
+from __future__ import annotations
+
+import json
+import logging
+import sqlite3
+import threading
+from typing import cast
+from typing import Iterable
+from typing import Mapping
+from typing import Sequence
+
+from opentelemetry.sdk.trace import Event
+from opentelemetry.sdk.trace import ReadableSpan
+from opentelemetry.sdk.trace.export import SpanExporter
+from opentelemetry.sdk.trace.export import SpanExportResult
+from opentelemetry.trace import SpanContext
+from opentelemetry.trace import SpanKind
+from opentelemetry.trace import Status
+from opentelemetry.trace import StatusCode
+from opentelemetry.trace import TraceFlags
+from opentelemetry.trace import TraceState
+from opentelemetry.util.types import AttributeValue
+
+logger = logging.getLogger("google_adk." + __name__)
+
+_CREATE_SPANS_TABLE = """
+CREATE TABLE IF NOT EXISTS spans (
+  span_id TEXT PRIMARY KEY,
+  trace_id TEXT NOT NULL,
+  parent_span_id TEXT,
+  name TEXT NOT NULL,
+  start_time_unix_nano INTEGER,
+  end_time_unix_nano INTEGER,
+  session_id TEXT,
+  invocation_id TEXT,
+  attributes_json TEXT
+);
+"""
+
+_CREATE_SESSION_INDEX = """
+CREATE INDEX IF NOT EXISTS spans_session_id_idx ON spans(session_id);
+"""
+
+_CREATE_TRACE_INDEX = """
+CREATE INDEX IF NOT EXISTS spans_trace_id_idx ON spans(trace_id);
+"""
+
+# Ordered schema migrations: entry 0 creates the original schema and each later
+# entry upgrades the one before it. `PRAGMA user_version` records how many have
+# been applied, so opening a database runs only the ones it lacks. Append new
+# entries; never edit one that has shipped.
+_MIGRATIONS: tuple[tuple[str, ...], ...] = (
+    (_CREATE_SPANS_TABLE, _CREATE_SESSION_INDEX, _CREATE_TRACE_INDEX),
+    ("ALTER TABLE spans ADD COLUMN kind TEXT NOT NULL DEFAULT 'INTERNAL'",),
+    (
+        "ALTER TABLE spans ADD COLUMN status_code TEXT",
+        "ALTER TABLE spans ADD COLUMN status_description TEXT",
+        "ALTER TABLE spans ADD COLUMN events_json TEXT",
+    ),
+)
+
+_INSERT_SPAN = """
+INSERT OR REPLACE INTO spans (
+  span_id,
+  trace_id,
+  parent_span_id,
+  name,
+  start_time_unix_nano,
+  end_time_unix_nano,
+  session_id,
+  invocation_id,
+  attributes_json,
+  kind,
+  status_code,
+  status_description,
+  events_json
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+"""
+
+_DEFAULT_TIMEOUT_SECONDS = 30.0
+
+
+def _apply_migrations(
+    conn: sqlite3.Connection, migrations: Sequence[Sequence[str]]
+) -> None:
+  """Applies the entries of `migrations` the database has not run yet."""
+  # Checked outside any transaction first, so opening a current database never
+  # waits on another connection's write lock.
+  if conn.execute("PRAGMA user_version").fetchone()[0] >= len(migrations):
+    return
+  with conn:
+    # CPython opens no transaction for DDL, so begin one explicitly. It
+    # takes the write lock before the version is read, so two processes
+    # opening the same file cannot both apply a migration.
+    conn.execute("BEGIN IMMEDIATE")
+    version = conn.execute("PRAGMA user_version").fetchone()[0]
+    if version >= len(migrations):
+      return
+    for statements in migrations[version:]:
+      for statement in statements:
+        conn.execute(statement)
+    # PRAGMA takes no bind parameters; the value is an int length.
+    conn.execute(f"PRAGMA user_version = {len(migrations)}")
+
+
+class SqliteSpanExporter(SpanExporter):
+  """Exports spans to a local SQLite database.
+
+  This is intended for local development (e.g. `adk web`) to allow reloading
+  traces for older sessions after process restart.
+
+  Span kinds survive export and reload. Existing databases are upgraded in
+  place; spans saved before kind persistence retain the INTERNAL default.
+  """
+
+  def __init__(self, *, db_path: str):
+    self._db_path = db_path
+    self._lock = threading.Lock()
+    self._conn: sqlite3.Connection | None = None
+    self._ensure_schema()
+
+  def _get_connection(self) -> sqlite3.Connection:
+    if self._conn is None:
+      self._conn = sqlite3.connect(
+          self._db_path,
+          timeout=_DEFAULT_TIMEOUT_SECONDS,
+          check_same_thread=False,
+      )
+      self._conn.row_factory = sqlite3.Row
+    return self._conn
+
+  def _ensure_schema(self) -> None:
+    with self._lock:
+      _apply_migrations(self._get_connection(), _MIGRATIONS)
+
+  def _serialize_attributes(
+      self, attributes: Mapping[str, AttributeValue]
+  ) -> str:
+    try:
+      return json.dumps(
+          attributes,
+          ensure_ascii=False,
+          default=lambda o: "<not serializable>",
+      )
+    except (TypeError, ValueError) as e:
+      logger.debug("Failed to serialize span attributes: %r", e)
+      return "{}"
+
+  def _deserialize_attributes(
+      self, attributes_json: object
+  ) -> dict[str, AttributeValue]:
+    if not isinstance(attributes_json, (str, bytes, bytearray)):
+      return {}
+    try:
+      decoded: object = json.loads(attributes_json)
+    except (json.JSONDecodeError, TypeError) as e:
+      logger.debug("Failed to deserialize span attributes: %r", e)
+      return {}
+    if not isinstance(decoded, dict):
+      return {}
+    return cast(dict[str, AttributeValue], decoded)
+
+  def _serialize_events(self, events: Sequence[Event]) -> str:
+    try:
+      return json.dumps(
+          [
+              {
+                  "name": event.name,
+                  "timestamp": event.timestamp,
+                  "attributes": dict(event.attributes or {}),
+              }
+              for event in events
+          ],
+          ensure_ascii=False,
+          default=lambda o: "<not serializable>",
+      )
+    except (TypeError, ValueError) as e:
+      logger.debug("Failed to serialize span events: %r", e)
+      return "[]"
+
+  def _deserialize_events(self, events_json: object) -> list[Event]:
+    if not isinstance(events_json, (str, bytes, bytearray)):
+      return []
+    try:
+      decoded: object = json.loads(events_json)
+    except (json.JSONDecodeError, TypeError) as e:
+      logger.debug("Failed to deserialize span events: %r", e)
+      return []
+    if not isinstance(decoded, list):
+      return []
+    events: list[Event] = []
+    for item in decoded:
+      if not isinstance(item, dict) or not isinstance(item.get("name"), str):
+        continue
+      timestamp = item.get("timestamp")
+      # Event substitutes time_ns() for a missing timestamp; drop the event.
+      if not isinstance(timestamp, int) or isinstance(timestamp, bool):
+        continue
+      attributes = item.get("attributes")
+      events.append(
+          Event(
+              name=item["name"],
+              attributes=attributes if isinstance(attributes, dict) else None,
+              timestamp=timestamp,
+          )
+      )
+    return events
+
+  def _deserialize_status(
+      self, status_code: object, status_description: object
+  ) -> Status:
+    try:
+      code = StatusCode[str(status_code)]
+    except KeyError:
+      return Status(StatusCode.UNSET)
+    # OpenTelemetry keeps a description only for an error status.
+    if code is StatusCode.ERROR and isinstance(status_description, str):
+      return Status(code, status_description)
+    return Status(code)
+
+  def export(self, spans: Sequence[ReadableSpan]) -> SpanExportResult:
+    try:
+      with self._lock:
+        conn = self._get_connection()
+        rows: list[tuple[object, ...]] = []
+        for span in spans:
+          attributes = dict(span.attributes) if span.attributes else {}
+          session_id_value = attributes.get(
+              "gcp.vertex.agent.session_id"
+          ) or attributes.get("gen_ai.conversation.id")
+          session_id = (
+              session_id_value if isinstance(session_id_value, str) else None
+          )
+          invocation_id_value = attributes.get("gcp.vertex.agent.invocation_id")
+          invocation_id = (
+              invocation_id_value
+              if isinstance(invocation_id_value, str)
+              else None
+          )
+
+          parent_span_id = None
+          if span.parent is not None:
+            parent_span_id = format(span.parent.span_id, "016x")
+
+          rows.append((
+              format(span.context.span_id, "016x"),
+              format(span.context.trace_id, "032x"),
+              parent_span_id,
+              span.name,
+              span.start_time,
+              span.end_time,
+              session_id,
+              invocation_id,
+              self._serialize_attributes(attributes),
+              span.kind.name,
+              span.status.status_code.name,
+              span.status.description,
+              self._serialize_events(span.events),
+          ))
+        conn.executemany(_INSERT_SPAN, rows)
+        conn.commit()
+      return SpanExportResult.SUCCESS
+    except Exception as e:  # pylint: disable=broad-exception-caught
+      logger.warning("Failed to export spans to SQLite: %s", e)
+      return SpanExportResult.FAILURE
+
+  def shutdown(self) -> None:
+    with self._lock:
+      if self._conn is not None:
+        self._conn.close()
+        self._conn = None
+
+  def force_flush(self, timeout_millis: int = 30000) -> bool:
+    return True
+
+  def _query(self, sql: str, params: Iterable[object]) -> list[sqlite3.Row]:
+    with self._lock:
+      conn = self._get_connection()
+      cur = conn.execute(sql, tuple(params))
+      return list(cur.fetchall())
+
+  def _row_to_readable_span(self, row: sqlite3.Row) -> ReadableSpan:
+    trace_id_hex = row["trace_id"]
+    span_id_hex = row["span_id"]
+    trace_id = int(str(trace_id_hex), 16)
+    span_id = int(str(span_id_hex), 16)
+    trace_state = TraceState()
+    trace_flags = TraceFlags(TraceFlags.SAMPLED)
+    context = SpanContext(
+        trace_id=trace_id,
+        span_id=span_id,
+        is_remote=False,
+        trace_flags=trace_flags,
+        trace_state=trace_state,
+    )
+
+    parent: SpanContext | None = None
+    parent_span_id_hex = row["parent_span_id"]
+    if parent_span_id_hex:
+      parent = SpanContext(
+          trace_id=trace_id,
+          span_id=int(str(parent_span_id_hex), 16),
+          is_remote=False,
+          trace_flags=trace_flags,
+          trace_state=trace_state,
+      )
+
+    attributes = self._deserialize_attributes(row["attributes_json"])
+    return ReadableSpan(
+        name=row["name"] or "",
+        context=context,
+        parent=parent,
+        kind=SpanKind[row["kind"]],
+        status=self._deserialize_status(
+            row["status_code"], row["status_description"]
+        ),
+        events=self._deserialize_events(row["events_json"]),
+        attributes=attributes,
+        start_time=row["start_time_unix_nano"],
+        end_time=row["end_time_unix_nano"],
+    )
+
+  def get_all_spans_for_session(self, session_id: str) -> list[ReadableSpan]:
+    """Returns all spans for a session (full trace trees).
+
+    We first find trace_ids associated with the session, then return all spans
+    for those trace_ids. This works even if some spans are missing session_id
+    attributes (e.g. parent spans).
+    """
+    trace_rows = self._query(
+        "SELECT DISTINCT trace_id FROM spans WHERE session_id = ?",
+        (session_id,),
+    )
+    trace_ids = [r["trace_id"] for r in trace_rows if r["trace_id"]]
+    if not trace_ids:
+      return []
+
+    placeholders = ",".join("?" for _ in trace_ids)
+    rows = self._query(
+        f"SELECT * FROM spans WHERE trace_id IN ({placeholders}) "
+        "ORDER BY start_time_unix_nano",
+        trace_ids,
+    )
+    return [self._row_to_readable_span(row) for row in rows]

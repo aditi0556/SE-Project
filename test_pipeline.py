@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import uuid
 from dotenv import load_dotenv
 
@@ -62,27 +63,16 @@ async def main():
                 session_id=session.id,
                 new_message=message,
             ):
-                agent_name = getattr(event, "agent_name", "unknown")
-                author = getattr(event, "author", "")
-                
-                # Check tool calls
-                if hasattr(event, "actions") and event.actions:
-                    for action in event.actions:
-                        tool_call = getattr(action, "tool_call", None)
-                        if tool_call:
-                            print(f"[{author or agent_name}] Tool Call: {getattr(tool_call, 'name', tool_call)}")
-                        tool_response = getattr(action, "tool_response", None)
-                        if tool_response:
-                            print(f"[{author or agent_name}] Tool Response received")
+                author = event.author
 
-                # Check content parts
-                if event.content and event.content.parts:
-                    for part in event.content.parts:
-                        if getattr(part, "text", None):
-                            text_preview = part.text.strip()
-                            if text_preview:
-                                print(f"\n--- Event from [{author or agent_name}] ---")
-                                print(text_preview[:500] + ("..." if len(text_preview) > 500 else ""))
+                for call in event.get_function_calls():
+                    print(f"[{author}] TOOL CALL -> {call.name}({str(call.args)[:100]})")
+
+                for resp in event.get_function_responses():
+                    print(f"[{author}] TOOL RESPONSE <- {resp.name}")
+
+                if event.is_final_response():
+                    print(f"[{author}] FINISHED (result saved to session state)")
             break
         except Exception as e:
             print(f"Warning: encountered error during run: {e}")

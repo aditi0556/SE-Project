@@ -1,8 +1,5 @@
 """
 Model configuration for the SDLC multi-agent pipeline.
-
-Set USE_LOCAL_MODEL to True to use local Ollama (qwen3.5:2b).
-Set USE_LOCAL_MODEL to False to use Gemini (gemini-3.8-flash) via Google API.
 """
 
 import os
@@ -10,22 +7,35 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ──────────────────────────────────────────────
-# TOGGLE THIS FLAG
-#   True  → Ollama local model (qwen3.5:2b)
-#   False → Gemini API (gemini-3.8-flash)
-# ──────────────────────────────────────────────
-USE_LOCAL_MODEL = False
+# MODEL PROVIDER CONFIGURATION
+# Options: "gemini", "ollama", "openrouter", "groq"
+MODEL_PROVIDER = os.getenv("MODEL_PROVIDER", "gemini")
 
 
 def get_model():
-    """Return the appropriate model instance based on the USE_LOCAL_MODEL flag."""
-    if USE_LOCAL_MODEL:
+    """Return the appropriate model instance based on MODEL_PROVIDER."""
+    if MODEL_PROVIDER == "gemini":
+        return "gemini-3.1-flash-lite"
+    elif MODEL_PROVIDER == "ollama":
         from google.adk.models.lite_llm import LiteLlm
 
         return LiteLlm(
             model="ollama_chat/qwen3.5:2b",
             extra_body={"think": False},
         )
+    elif MODEL_PROVIDER == "openrouter":
+        from google.adk.models.lite_llm import LiteLlm
+
+        return LiteLlm(
+            model="openrouter/qwen/qwen-2.5-72b-instruct",
+            api_key=os.environ.get("OPENROUTER_API_KEY"),
+        )
+    elif MODEL_PROVIDER == "groq":
+        from google.adk.models.lite_llm import LiteLlm
+
+        return LiteLlm(
+            model="groq/qwen/qwen3.8-27b",
+            api_key=os.environ.get("GROQ_API_KEY"),
+        )
     else:
-        return "gemini-3.8-flash"
+        return "gemini-3.1-flash-lite"

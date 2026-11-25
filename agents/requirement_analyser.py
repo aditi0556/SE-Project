@@ -4,7 +4,9 @@ from google.adk.tools.mcp_tool.mcp_session_manager import StdioConnectionParams
 from mcp import StdioServerParameters
 from pydantic import BaseModel, Field
 from typing import List
+from google.adk.models.lite_llm import LiteLlm
 from config import get_model
+import os
 
 QDRANT_URL = "http://localhost:6333"
 COLLECTION_NAME = "healthcare_knowledge"
