@@ -72,7 +72,7 @@ compliance_agent = Agent(
 
     1. Retrieve Knowledge:
        Use the Qdrant retrieval tool with 1 or 2 focused queries to search 'healthcare_knowledge'
-       for relevant healthcare domain rules, standards (e.g., HIPAA, FHIR, medical device safety),
+       for relevant healthcare domain rules, standards (e.g. FHIR, medical device safety),
        and guidelines covering the requirements. Do not execute separate queries for every individual requirement.
 
         Do not skip requirements, invent external regulations or unsupported rules, or mark a requirement Non-Compliant without explicit contradictory evidence.

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDLC Multi-Agent Analysis System</title>
+    <style>
+        :root {
+            --bg-main: #070f1e;
+            --bg-card: #0d1b2a;
+            --bg-subcard: #132438;
+            --bg-input: #0a1626;
+            --border-color: #1e3a5f;
+            --border-highlight: #2c5282;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #60a5fa;
+            --accent-tag: #172e4c;
+            --status-success: #1d4ed8;
+            --status-pending: #1e3a5f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 24px 16px;
+        }
+
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .input-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .input-header label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--accent-light);
+            cursor: pointer;
+            font-size: 0.85rem;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .btn-link:hover {
+            color: #ffffff;
+        }
+
+        textarea {
+            width: 100%;
+            height: 110px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            padding: 12px;
+            font-size: 0.92rem;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            margin-bottom: 14px;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .btn-submit {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 22px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pipeline-status {
+            display: none;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            color: var(--accent-light);
+        }
+
+        .agent-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: border-color 0.2s ease;
+        }
+
+        .agent-card.active {
+            border-color: var(--accent-blue);
+        }
+
+        .agent-header {
+            padding: 14px 18px;
+            background-color: #0b1726;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .agent-status-badge {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background-color: var(--accent-tag);
+            color: var(--accent-light);
+            border: 1px solid var(--border-color);
+        }
+
+        .agent-status-badge.running {
+            color: #93c5fd;
+            border-color: #2563eb;
+            background-color: #1e3a8a;
+        }
+
+        .agent-status-badge.completed {
+            color: #bfdbfe;
+            border-color: #1d4ed8;
+            background-color: #172554;
+        }
+
+        .agent-body {
+            padding: 18px;
+        }
+
+        .section-block {
+            margin-bottom: 16px;
+        }
+
+        .section-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--accent-light);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: 8px;
+        }
+
+        ul.points-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        ul.points-list > li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 0.92rem;
+            color: var(--text-main);
+        }
+
+        ul.points-list > li::before {
+            content: "•";
+            position: absolute;
+            left: 6px;
+            color: var(--accent-light);
+            font-weight: bold;
+        }
+
+        .sub-points-list {
+            list-style-type: none;
+            padding-left: 16px;
+            margin-top: 6px;
+            margin-bottom: 10px;
+        }
+
+        .sub-points-list > li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 4px;
+            font-size: 0.88rem;
+            color: var(--text-muted);
+        }
+
+        .sub-points-list > li::before {
+            content: "-";
+            position: absolute;
+            left: 6px;
+            color: #64748b;
+        }
+
+        .sdlc-model-box {
+            background-color: var(--bg-subcard);
+            border: 1px solid var(--border-highlight);
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+        }
+
+        .sdlc-model-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 4px;
+        }
+
+        .waiting-text {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .error-box {
+            background-color: #2b1117;
+            border: 1px solid #742a2a;
+            color: #fca5a5;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SDLC Multi-Agent Analysis System</h1>
+            <div class="subtitle">Sequential multi-agent analysis for requirements, healthcare compliance, and SDLC determination</div>
+        </header>
+
+        <section class="input-card">
+            <div class="input-header">
+                <label for="projectStatement">Project Description Statement</label>
+                <button type="button" class="btn-link" id="loadSampleBtn">Load Sample Statement</button>
+            </div>
+            <textarea id="projectStatement" placeholder="Enter system requirements and project description here..."></textarea>
+            <div>
+                <button type="button" class="btn-submit" id="submitBtn">Start Pipeline Analysis</button>
+            </div>
+        </section>
+
+        <div id="errorBox" class="error-box"></div>
+        <div id="pipelineStatus" class="pipeline-status"></div>
+
+        <div id="resultsContainer">
+            <!-- Agent 1: Requirement Analyser -->
+            <div class="agent-card" id="card-requirements">
+                <div class="agent-header">
+                    <span class="agent-title">Agent 1: Requirement Analyser</span>
+                    <span class="agent-status-badge" id="badge-requirements">Standby</span>
+                </div>
+                <div class="agent-body" id="body-requirements">
+                    <p class="waiting-text">Awaiting pipeline execution.</p>
+                </div>
+            </div>
+
+            <!-- Agent 2: Compliance Agent -->
+            <div class="agent-card" id="card-compliance">
+                <div class="agent-header">
+                    <span class="agent-title">Agent 2: Compliance Agent</span>
+                    <span class="agent-status-badge" id="badge-compliance">Standby</span>
+                </div>
+                <div class="agent-body" id="body-compliance">
+                    <p class="waiting-text">Awaiting completion of Requirement Analyser.</p>
+                </div>
+            </div>
+
+            <!-- Agent 3: SDLC Determiner -->
+            <div class="agent-card" id="card-sdlc">
+                <div class="agent-header">
+                    <span class="agent-title">Agent 3: SDLC Determiner</span>
+                    <span class="agent-status-badge" id="badge-sdlc">Standby</span>
+                </div>
+                <div class="agent-body" id="body-sdlc">
+                    <p class="waiting-text">Awaiting completion of Compliance Agent.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sampleText = "We are developing a cloud-based remote patient monitoring system that collects real-time vital signs (heart rate, blood pressure, ECG, SpO2) from wearable medical sensors, transmits them securely, stores patient health records, and alerts healthcare providers in case of emergency anomalies. It must integrate with hospital Electronic Health Record (EHR) systems via FHIR APIs, comply with HIPAA and medical device safety regulations, and guarantee high availability and zero data loss.";
+
+        const loadSampleBtn = document.getElementById("loadSampleBtn");
+        const submitBtn = document.getElementById("submitBtn");
+        const statementInput = document.getElementById("projectStatement");
+        const pipelineStatus = document.getElementById("pipelineStatus");
+        const errorBox = document.getElementById("errorBox");
+
+        loadSampleBtn.addEventListener("click", () => {
+            statementInput.value = sampleText;
+        });
+
+        submitBtn.addEventListener("click", async () => {
+            const statement = statementInput.value.trim();
+            if (!statement) {
+                showError("Please enter a project description statement.");
+                return;
+            }
+
+            resetUI();
+            submitBtn.disabled = true;
+            pipelineStatus.style.display = "block";
+            pipelineStatus.textContent = "Status: Initializing multi-agent pipeline...";
+
+            try {
+                const response = await fetch("/api/analyze", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ statement })
+                });
+
+                if (!response.ok) {
+                    throw new Error("HTTP error: " + response.status + " " + response.statusText);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n");
+                    buffer = lines.pop(); // keep partial line in buffer
+
+                    for (const line of lines) {
+                        const trimmed = line.trim();
+                        if (!trimmed || !trimmed.startsWith("data:")) continue;
+
+                        const jsonStr = trimmed.slice(5).trim();
+                        if (!jsonStr) continue;
+
+                        try {
+                            const event = JSON.parse(jsonStr);
+                            handlePipelineEvent(event);
+                        } catch (err) {
+                            console.error("JSON parse error:", err, jsonStr);
+                        }
+                    }
+                }
+            } catch (err) {
+                showError("Pipeline error: " + err.message);
+                pipelineStatus.style.display = "none";
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        function resetUI() {
+            errorBox.style.display = "none";
+            errorBox.textContent = "";
+
+            updateAgentStatus("requirements", "Standby", "Awaiting execution...");
+            updateAgentStatus("compliance", "Standby", "Awaiting completion of Requirement Analyser...");
+            updateAgentStatus("sdlc", "Standby", "Awaiting completion of Compliance Agent...");
+        }
+
+        function showError(msg) {
+            errorBox.textContent = msg;
+            errorBox.style.display = "block";
+        }
+
+        function updateAgentStatus(agentKey, statusText, bodyMessage = null) {
+            const badge = document.getElementById("badge-" + agentKey);
+            const card = document.getElementById("card-" + agentKey);
+            const body = document.getElementById("body-" + agentKey);
+
+            badge.textContent = statusText;
+            badge.className = "agent-status-badge";
+            card.className = "agent-card";
+
+            if (statusText === "In Progress") {
+                badge.classList.add("running");
+                card.classList.add("active");
+            } else if (statusText === "Completed") {
+                badge.classList.add("completed");
+            }
+
+            if (bodyMessage && statusText !== "Completed") {
+                body.innerHTML = `<p class="waiting-text">${escapeHtml(bodyMessage)}</p>`;
+            }
+        }
+
+        function handlePipelineEvent(event) {
+            if (event.type === "status") {
+                pipelineStatus.textContent = "Status: " + event.message;
+            } else if (event.type === "agent_start") {
+                if (event.agent === "requirement_analyser") {
+                    updateAgentStatus("requirements", "In Progress", "Analyzing requirements and domain factors...");
+                } else if (event.agent === "compliance_agent") {
+                    updateAgentStatus("compliance", "In Progress", "Retrieving knowledge and verifying compliance...");
+                } else if (event.agent === "sdlc_determiner") {
+                    updateAgentStatus("sdlc", "In Progress", "Evaluating SDLC models against matched factors...");
+                }
+            } else if (event.type === "agent_result") {
+                if (event.key === "requirements") {
+                    renderRequirements(event.data);
+                } else if (event.key === "compliance") {
+                    renderCompliance(event.data);
+                } else if (event.key === "sdlc_result") {
+                    renderSDLCResult(event.data);
+                }
+            } else if (event.type === "done") {
+                pipelineStatus.textContent = "Status: Multi-agent pipeline execution completed.";
+            } else if (event.type === "error") {
+                showError("Pipeline encountered error: " + event.message);
+                pipelineStatus.style.display = "none";
+            }
+        }
+
+        function renderRequirements(data) {
+            updateAgentStatus("requirements", "Completed");
+            const body = document.getElementById("body-requirements");
+            let html = "";
+
+            // Functional Requirements
+            html += `<div class="section-block">
+                <div class="section-title">Functional Requirements</div>
+                <ul class="points-list">`;
+            const funcs = data.functional_requirements || [];
+            if (funcs.length === 0) {
+                html += `<li>No functional requirements extracted.</li>`;
+            } else {
+                for (const item of funcs) {
+                    html += `<li>${escapeHtml(item)}</li>`;
+                }
+            }
+            html += `</ul></div>`;
+
+            // Non-Functional Requirements
+            html += `<div class="section-block">
+                <div class="section-title">Non-Functional Requirements</div>
+                <ul class="points-list">`;
+            const nonFuncs = data.non_functional_requirements || [];
+            if (nonFuncs.length === 0) {
+                html += `<li>No non-functional requirements extracted.</li>`;
+            } else {
+                for (const item of nonFuncs) {
+                    html += `<li>${escapeHtml(item)}</li>`;
+                }
+            }
+            html += `</ul></div>`;
+
+            // SDLC Factors
+            const factors = data.sdlc_factors || {};
+            html += `<div class="section-block">
+                <div class="section-title">SDLC-Relevant Factors</div>
+                <ul class="points-list">`;
+            for (const [key, val] of Object.entries(factors)) {
+                const label = formatFactorName(key);
+                html += `<li><strong>${escapeHtml(label)}:</strong> ${escapeHtml(String(val))}</li>`;
+            }
+            html += `</ul></div>`;
+
+            body.innerHTML = html;
+        }
+
+        function renderCompliance(data) {
+            updateAgentStatus("compliance", "Completed");
+            const body = document.getElementById("body-compliance");
+            let html = "";
+
+            // Summary
+            if (data.summary) {
+                html += `<div class="section-block">
+                    <div class="section-title">Compliance Summary</div>
+                    <ul class="points-list">
+                        <li>${escapeHtml(data.summary)}</li>
+                    </ul>
+                </div>`;
+            }
+
+            // Verified Requirements
+            const verified = data.verified_requirements || [];
+            html += `<div class="section-block">
+                <div class="section-title">Verified Requirements Against Healthcare DB</div>
+                <ul class="points-list">`;
+            if (verified.length === 0) {
+                html += `<li>No compliance records found.</li>`;
+            } else {
+                for (const item of verified) {
+                    html += `<li>
+                        <strong>${escapeHtml(item.requirement || "Requirement")}</strong>
+                        <ul class="sub-points-list">
+                            <li><strong>Status:</strong> ${escapeHtml(item.status || "Unknown")}</li>
+                            ${item.retrieved_evidence ? `<li><strong>Evidence:</strong> ${escapeHtml(item.retrieved_evidence)}</li>` : ""}
+                            ${item.notes ? `<li><strong>Notes:</strong> ${escapeHtml(item.notes)}</li>` : ""}
+                        </ul>
+                    </li>`;
+                }
+            }
+            html += `</ul></div>`;
+
+            body.innerHTML = html;
+        }
+
+        function renderSDLCResult(data) {
+            updateAgentStatus("sdlc", "Completed");
+            const body = document.getElementById("body-sdlc");
+            let html = "";
+
+            // Selected Model
+            const modelName = data.selected_sdlc || "Determined Model";
+            html += `<div class="sdlc-model-box">
+                <div class="section-title">Recommended SDLC Model</div>
+                <div class="sdlc-model-name">${escapeHtml(modelName)}</div>
+            </div>`;
+
+            // Rationale
+            if (data.rationale) {
+                html += `<div class="section-block">
+                    <div class="section-title">Rationale</div>
+                    <ul class="points-list">
+                        <li>${escapeHtml(data.rationale)}</li>
+                    </ul>
+                </div>`;
+            }
+
+            // Matched Factors
+            const matched = data.matched_factors || [];
+            if (matched.length > 0) {
+                html += `<div class="section-block">
+                    <div class="section-title">Matched Project Factors</div>
+                    <ul class="points-list">`;
+                for (const factor of matched) {
+                    html += `<li>${escapeHtml(factor)}</li>`;
+                }
+                html += `</ul></div>`;
+            }
+
+            // Retrieved Knowledge
+            const knowledge = data.retrieved_knowledge || [];
+            if (knowledge.length > 0) {
+                html += `<div class="section-block">
+                    <div class="section-title">Retrieved SDLC Knowledge</div>
+                    <ul class="points-list">`;
+                for (const item of knowledge) {
+                    html += `<li>${escapeHtml(item)}</li>`;
+                }
+                html += `</ul></div>`;
+            }
+
+            body.innerHTML = html;
+        }
+
+        function formatFactorName(name) {
+            return name
+                .split("_")
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
+        }
+
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

@@ -1,20 +1,19 @@
 SOFTWARE DEVELOPMENT LIFE CYCLE (SDLC) — MODEL SELECTION GUIDE
-Source: Topic-2 Selection of an SDLC (Mahendra Pratap Singh, Dept. of CSE, NITK)
 
-================================================================
+---
 HOW TO CHOOSE A MODEL
-================================================================
+---
 Selection is driven by four project characteristic categories:
  1. Requirements (clarity, stability, need to demonstrate them)
  2. Project Team (familiarity with domain/technology/tools, turnover, training)
  3. User Community (availability, expertise, desired involvement)
  4. Project Type & Risk (new direction, integration, funding stability, expected longevity)
 
-Six models are compared: Waterfall, V-Shaped, Prototype, Spiral, RAD, Incremental.
+The main comparison covers six models: Waterfall, V-Shaped, Prototype, Spiral, RAD, and Incremental. Agile is included as a separate model-selection section.
 
-================================================================
+---
 1. WATERFALL MODEL
-================================================================
+---
 Use when:
  - Requirements are well known, clearly defined, and can be locked in early.
  - Requirements are NOT expected to change during the project.
@@ -31,9 +30,9 @@ Team/User fit:
 Bottom line: Choose Waterfall for well-understood, stable, low-ambiguity projects where
 you can define everything up front and don't expect change.
 
-================================================================
+---
 2. V-SHAPED MODEL (Verification & Validation)
-================================================================
+---
 Use when:
  - Requirements are well known and can be defined early, and are unlikely to change.
  - The project involves system integration or is an enhancement to an existing system.
@@ -46,9 +45,9 @@ Team/User fit:
 Bottom line: Choose V-Shaped like Waterfall, but specifically when strong testing/validation
 discipline is needed — e.g., integration or enhancement work where correctness matters.
 
-================================================================
+---
 3. PROTOTYPE MODEL
-================================================================
+---
 Use when:
  - Requirements are NOT well known or easily defined, and are likely to change.
  - There is a need to demonstrate requirements, or build a proof of concept, to nail
@@ -62,9 +61,9 @@ Team/User fit:
 Bottom line: Choose Prototype when you need to explore and validate unclear requirements
 with active, expert user feedback before committing to a full build.
 
-================================================================
+---
 4. SPIRAL MODEL
-================================================================
+---
 Use when:
  - Requirements are poorly understood and expected to change frequently.
  - A strong need exists to demonstrate requirements and prove feasibility (proof of concept).
@@ -79,9 +78,9 @@ Team/User fit:
 Bottom line: Choose Spiral for large, high-risk, high-uncertainty projects where
 iterative risk analysis is essential and unstable funding/requirements are expected.
 
-================================================================
+---
 5. RAD (RAPID APPLICATION DEVELOPMENT) MODEL
-================================================================
+---
 Use when:
  - Requirements are well known, can be defined early, and are stable — but still
    benefit from demonstration and a proof of concept for stakeholder buy-in.
@@ -96,9 +95,9 @@ Bottom line: Choose RAD when you have clear requirements, an experienced team, a
 engaged expert users, and you want to move fast — typically for integration/enhancement
 projects with stable funding.
 
-================================================================
+---
 6. INCREMENTAL MODEL
-================================================================
+---
 Use when:
  - Requirements can be defined early overall, even if some details evolve — but are
    not expected to change drastically once each increment is locked in.
@@ -115,9 +114,9 @@ Bottom line: Choose Incremental when you want to deliver working pieces of the s
 progressively, tolerate some team turnover, and don't need constant full-time user
 involvement.
 
-================================================================
+---
 QUICK COMPARISON TABLE (Yes/No answers from the source slides)
-================================================================
+---
 Legend: W=Waterfall, V=V-Shaped, P=Prototype, S=Spiral, R=RAD, I=Incremental
 
 REQUIREMENTS
@@ -151,10 +150,47 @@ Enhancement to an existing system?                                 N   Y   N   N
 Funding expected stable throughout life cycle?                     Y   Y   Y   N   Y   N
 Long life expected in the organization?                             Y   Y   N   Y   N   Y
 
-================================================================
-7. HEALTHCARE & REGULATED MEDICAL SDLC MODELS
-================================================================
-Source: Healthcare & Medical Software SDLC Guidelines (IEC 62304, FDA Design Controls, HIPAA)
+---
+7. AGILE MODEL
+---
+Use when:
+ - Requirements may change during development, and the project needs a rapid,
+   adaptive response to change requests.
+ - Development and testing should proceed continuously and concurrently rather
+   than in strictly separate phases.
+ - The project benefits from short development iterations and rapid, incremental
+   delivery of working software.
+ - Customer descriptions/scenarios guide development, and feedback is used to
+   adapt the product and plan as the project progresses.
+ - Communication between customers and developers can be frequent and effective.
+
+Team/User fit:
+ - Works best with competent, collaborative, self-organizing team members who can
+   make decisions, solve problems, and maintain mutual trust and respect.
+ - Requires effective communication among stakeholders and close customer
+   involvement/feedback.
+ - Teams should be able to work with flexible plans and focus on delivering
+   operational software rather than producing unnecessary intermediate documents.
+
+Common Agile models:
+ - Extreme Programming (XP)
+ - Scrum
+ - Adaptive Software Development (ASD)
+ - Dynamic Systems Development Method (DSDM)
+ - Crystal
+ - Feature Driven Development (FDD)
+ - Agile Modeling (AM)
+
+Bottom line: Choose Agile when requirements are expected to evolve and the project
+benefits from iterative development, continuous testing, frequent working-software
+delivery, and active customer collaboration.
+
+Note: The comparison table covers the six models listed above. Agile has no Yes/No
+entries in that table.
+
+---
+8. HEALTHCARE & REGULATED MEDICAL SDLC MODELS
+---
 
 Model Decision Matrix for Healthcare & Medical Systems:
 - WATERFALL / FORMAL SEQUENTIAL:
@@ -168,16 +204,9 @@ Model Decision Matrix for Healthcare & Medical Systems:
 - SPIRAL MODEL:
   Best for: Experimental clinical algorithms, novel medical imaging techniques, or AI-driven diagnostic research with high technical uncertainty where iterative prototyping and clinical risk mitigation are required before deployment.
 
-- AGILE (Scrum / Kanban):
+- AGILE (Scrum ):
   Best for: Low-risk healthcare wellness apps (Class A / non-device), patient appointment portals, educational wellness tools, or internal administrative systems with rapidly evolving user requirements and active clinician/patient feedback.
 
-- HEALTHCARE DEVSECOPS:
-  Best for: Cloud-native digital health platforms, FHIR API microservices, and continuous secure deployment with automated HIPAA compliance-as-code, automated static analysis (SAST/DAST), dependency vulnerability scanning (SBOM), and immutable audit log automation.
-
-- AGILE–V-MODEL HYBRID (REGULATED AGILE / IEC 62304 HYBRID):
-  Best for: Modern clinical software, digital health platforms, and SaMD requiring both rapid feature iteration and rigorous medical regulatory compliance.
-  Key indicators: Fast iterative sprints for feature design and clinical usability, coupled with formal V-Model gate reviews, clinical risk analysis (ISO 14971), traceability verification, and formal sign-offs (Clinical Safety Officer & Regulatory Affairs) at major release boundaries.
-
-================================================================
+---
 END OF GUIDE
-================================================================
+---

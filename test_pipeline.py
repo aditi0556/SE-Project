@@ -14,15 +14,12 @@ from google.genai import types
 APP_NAME = "sdlc"
 USER_ID = "aditi"
 
-SAMPLE_INPUT = (
-    "We are developing a cloud-based remote patient monitoring system that "
-    "collects real-time vital signs (heart rate, blood pressure, ECG, SpO2) "
-    "from wearable medical sensors, transmits them securely, stores patient health "
-    "records, and alerts healthcare providers in case of emergency anomalies. "
-    "It must integrate with hospital Electronic Health Record (EHR) systems via FHIR APIs, "
-    "comply with HIPAA and medical device safety regulations, and guarantee high availability "
-    "and zero data loss."
-)
+SAMPLE_INPUT = (""" I want to develop a Hospital Appointment and Patient Record Management System for a multi-speciality hospital.
+    The system should allow patients to register, log in, view available doctors based on their specializations, and book, reschedule or cancel appointments. Patients should also be able to view their appointment history and access their previous prescriptions and medical records.
+    Doctors should be able to view their appointment schedules, access relevant patient medical histories, and add consultation notes and prescriptions after appointments.
+    Hospital administrators should be able to manage doctor profiles, specializations, appointment slots and patient records.
+    The system should send appointment confirmations and reminders, prevent double booking of appointment slots, and ensure that patient medical records can only be accessed by authorized users.
+    The application should provide a user-friendly interface, protect confidential patient information, support multiple users simultaneously, and ensure reliable and accurate storage of medical records.""")
 
 
 async def main():
